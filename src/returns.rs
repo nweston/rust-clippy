@@ -4,7 +4,7 @@ use syntax::codemap::{Span, Spanned};
 use syntax::visit::FnKind;
 use rustc::lint::{Context, LintPass, LintArray, Level};
 
-use utils::{span_lint, snippet, match_path};
+use utils::{span_lint, snippet, match_path, in_macro_stronger};
 
 declare_lint!(pub NEEDLESS_RETURN, Warn,
               "using a return statement like `return expr;` where an expression would suffice");
@@ -59,6 +59,7 @@ impl ReturnPass {
     }
 
     fn emit_return_lint(&mut self, cx: &Context, spans: (Span, Span)) {
+        if in_macro_stronger(cx, spans.1) {return;}
         span_lint(cx, NEEDLESS_RETURN, spans.0, &format!(
             "unneeded return statement. Consider using `{}` \
              without the trailing semicolon",
@@ -85,6 +86,7 @@ impl ReturnPass {
     }
 
     fn emit_let_lint(&mut self, cx: &Context, lint_span: Span, note_span: Span) {
+        if in_macro_stronger(cx, note_span) {return;}
         span_lint(cx, LET_AND_RETURN, lint_span,
                   "returning the result of a let binding. \
                    Consider returning the expression directly.");

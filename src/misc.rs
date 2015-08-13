@@ -7,7 +7,7 @@ use rustc::lint::{Context, LintPass, LintArray, Lint, Level};
 use rustc::middle::ty;
 use syntax::codemap::{Span, Spanned};
 
-use utils::{match_path, snippet, snippet_block, span_lint, span_help_and_lint, walk_ptrs_ty};
+use utils::{match_path, snippet, snippet_block, span_lint, span_help_and_lint, walk_ptrs_ty, in_external_macro};
 
 /// Handles uncategorized lints
 /// Currently handles linting of if-let-able matches
@@ -38,6 +38,9 @@ impl LintPass for MiscPass {
                     if arms[1].pats[0].node == PatWild(PatWildSingle) &&
                             arms[0].pats.len() == 1 {
                         let body_code = snippet_block(cx, arms[0].body.span, "..");
+                        if in_external_macro(cx, expr.span) {
+                            return;
+                        }
                         let suggestion = if let ExprBlock(_) = arms[0].body.node {
                             body_code.into_owned()
                         } else {
@@ -60,7 +63,7 @@ impl LintPass for MiscPass {
 }
 
 
-declare_lint!(pub TOPLEVEL_REF_ARG, Warn,
+declare_lint!(pub TOPLEVEL_REF_ARG, Allow,
               "a function argument is declared `ref` (i.e. `fn foo(ref x: u8)`, but not \
                `fn foo((ref x, ref y): (u8, u8))`)");
 
@@ -117,7 +120,7 @@ fn check_nan(cx: &Context, path: &Path, span: Span) {
     });
 }
 
-declare_lint!(pub FLOAT_CMP, Warn,
+declare_lint!(pub FLOAT_CMP, Allow,
               "using `==` or `!=` on float values (as floating-point operations \
                usually involve rounding errors, it is always better to check for approximate \
                equality within small bounds)");
@@ -134,6 +137,9 @@ impl LintPass for FloatCmp {
         if let ExprBinary(ref cmp, ref left, ref right) = expr.node {
             let op = cmp.node;
             if (op == BiEq || op == BiNe) && (is_float(cx, left) || is_float(cx, right)) {
+                if in_external_macro(cx, expr.span) {
+                    return;
+                }
                 span_lint(cx, FLOAT_CMP, expr.span, &format!(
                     "{}-comparison of f32 or f64 detected. Consider changing this to \
                      `abs({} - {}) < epsilon` for some suitable value of epsilon",

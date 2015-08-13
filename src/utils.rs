@@ -30,6 +30,13 @@ pub fn in_external_macro(cx: &Context, span: Span) -> bool {
             |info| in_macro(cx, info))
 }
 
+// Does stronger checks for macroness
+pub fn in_macro_stronger(cx: &Context, span: Span) -> bool {
+    cx.sess().codemap().with_expn_info(span.expn_id,
+            |info| in_macro(cx, info) || info.map(|i| i.callee.name.contains("derive")).unwrap_or(false)) ||
+    snippet(cx, span, "").contains("derive")
+}
+
 /// check if a DefId's path matches the given absolute type path
 /// usage e.g. with
 /// `match_def_path(cx, id, &["core", "option", "Option"])`

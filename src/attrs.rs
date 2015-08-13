@@ -8,7 +8,7 @@ use syntax::codemap::{Span, ExpnInfo};
 use syntax::parse::token::InternedString;
 use utils::{in_macro, match_path, span_lint};
 
-declare_lint! { pub INLINE_ALWAYS, Warn,
+declare_lint! { pub INLINE_ALWAYS, Allow,
     "`#[inline(always)]` is a bad idea in most cases" }
 
 

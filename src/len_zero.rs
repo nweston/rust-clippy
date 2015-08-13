@@ -11,11 +11,11 @@ use syntax::codemap::{Span, Spanned};
 use syntax::ast::*;
 use utils::{span_lint, walk_ptrs_ty, snippet};
 
-declare_lint!(pub LEN_ZERO, Warn,
+declare_lint!(pub LEN_ZERO, Allow,
               "checking `.len() == 0` or `.len() > 0` (or similar) when `.is_empty()` \
                could be used instead");
 
-declare_lint!(pub LEN_WITHOUT_IS_EMPTY, Warn,
+declare_lint!(pub LEN_WITHOUT_IS_EMPTY, Allow,
               "traits and impls that have `.len()` but not `.is_empty()`");
 
 #[derive(Copy,Clone)]
